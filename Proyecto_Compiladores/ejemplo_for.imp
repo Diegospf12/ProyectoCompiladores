@@ -1,0 +1,12 @@
+//var int x;
+//x = 1; 
+//while x < 10 do print(x); x = x+1 endwhile;
+
+//for x : 5, 20 do print(x) endfor 
+
+var bool x, y;
+x = false;
+y = true;
+
+print(x and y);
+print(x or y)

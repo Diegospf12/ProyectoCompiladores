@@ -1,0 +1,13 @@
+var int x;
+var bool y, z;
+y = true;
+z = false;
+x = 0;
+do print(x/2); x=x+1 while x < 5;
+
+while x < 10 do print(x/2); x=x+1 endwhile;
+
+do print(x/7); x=x+1 while x < 20;
+
+print(x);
+print(y or z)

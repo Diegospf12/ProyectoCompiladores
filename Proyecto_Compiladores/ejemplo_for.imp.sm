@@ -1,0 +1,12 @@
+push 0
+store 0
+push 1
+store 1
+load 0
+load 1
+and
+print
+load 0
+load 1
+or
+print
