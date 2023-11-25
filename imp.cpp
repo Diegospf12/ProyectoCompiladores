@@ -28,6 +28,8 @@ BoolConstExp::BoolConstExp(bool v):b(v) {}
 IdExp::IdExp(string id):id(id) {}
 ParenthExp::ParenthExp(Exp *e):e(e){}
 CondExp::CondExp(Exp *c, Exp* et, Exp* ef):cond(c), etrue(et), efalse(ef){}
+ContinueStatement::ContinueStatement() = default;
+BreakStatement::BreakStatement() = default;
 
 Exp::~Exp() {}
 BinaryExp::~BinaryExp() { delete left; delete right; }
@@ -37,6 +39,8 @@ BoolConstExp::~BoolConstExp() { }
 IdExp::~IdExp() { }
 ParenthExp::~ParenthExp(){ delete e; }
 CondExp::~CondExp(){ delete cond; delete etrue; delete efalse; }
+ContinueStatement::~ContinueStatement() {}
+BreakStatement::~BreakStatement() {}
 
 int BinaryExp::accept(ImpVisitor* v) {
   return v->visit(this);
@@ -66,6 +70,13 @@ int CondExp::accept(ImpVisitor* v) {
   return v->visit(this);
 }
 
+int ContinueStatement::accept(ImpVisitor* v) {
+  return v->visit(this);
+}
+
+int BreakStatement::accept(ImpVisitor* v) {
+  return v->visit(this);
+}
 
 
 // type visitor
@@ -94,6 +105,14 @@ ImpType ParenthExp::accept(TypeVisitor* v) {
 }
 
 ImpType CondExp::accept(TypeVisitor* v) {
+  return v->visit(this);
+}
+
+void ContinueStatement::accept(TypeVisitor* v) {
+  return v->visit(this);
+}
+
+void BreakStatement::accept(TypeVisitor* v) {
   return v->visit(this);
 }
 

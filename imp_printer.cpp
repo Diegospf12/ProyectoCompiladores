@@ -101,6 +101,16 @@ int ImpPrinter::visit(ForStatement* s) {
   return 0;
 }
 
+int ImpPrinter::visit(ContinueStatement* e) {
+  cout << "continue";
+  return 0;
+}
+
+int ImpPrinter::visit(BreakStatement* e) {
+  cout << "break";
+  return 0;
+}
+
 int ImpPrinter::visit(BinaryExp* e) {
   e->left->accept(this);
   cout << ' ' << Exp::binopToString(e->op) << ' ';

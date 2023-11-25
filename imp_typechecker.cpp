@@ -1,6 +1,6 @@
 #include "imp_typechecker.hh"
 
-ImpTypeChecker::ImpTypeChecker():inttype(),booltype() {
+ImpTypeChecker::ImpTypeChecker():inttype(),booltype(), loopCounter(0) {
   inttype.set_basic_type("int");
   booltype.set_basic_type("bool");
 }
@@ -89,17 +89,22 @@ void ImpTypeChecker::visit(WhileStatement* s) {
   if (!s->cond->accept(this).match(booltype)) {
     cout << "Condicional en WhileStm debe de ser: " << booltype << endl;
     exit(0);
-  }  
+  }
+  enterLoop();
   s->body->accept(this);
+  exitLoop();
  return;
 }
 
 void ImpTypeChecker::visit(DoWhileStatement* s) {
+  // El Do While primero verifica el body porque lo lee por lo menos una vez
+  enterLoop();
+  s->body->accept(this);
   if (!s->cond->accept(this).match(booltype)) {
     cout << "Condicional en DoWhileStm debe de ser: " << booltype << endl;
     exit(0);
-  }  
-  s->body->accept(this);
+  }
+  exitLoop();
  return;
 }
 
@@ -110,11 +115,27 @@ void ImpTypeChecker::visit(ForStatement* s) {
     cout << "Tipos de rangos en for deben de ser: " << inttype << endl;
     exit(0);
   }
+  enterLoop();
   env.add_level();
   env.add_var(s->id,inttype);
   s->body->accept(this);
   env.remove_level();
- return;
+  exitLoop();
+  return;
+}
+
+void ImpTypeChecker::visit(ContinueStatement* s) {
+  if (!isInsideLoop()) {
+    cout << "La sentencia 'continue' solo puede usarse dentro de un bucle." << endl;
+    exit(0);
+  }
+}
+
+void ImpTypeChecker::visit(BreakStatement* s) {
+  if (!isInsideLoop()) {
+    cout << "La sentencia 'break' solo puede usarse dentro de un bucle." << endl;
+    exit(0);
+  }
 }
 
 ImpType ImpTypeChecker::visit(BinaryExp* e) {

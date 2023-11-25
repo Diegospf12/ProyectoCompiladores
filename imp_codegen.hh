@@ -26,7 +26,9 @@ public:
   int visit(WhileStatement*);
   int visit(DoWhileStatement*);
   int visit(ForStatement*);
-  
+  int visit(ContinueStatement*);
+  int visit(BreakStatement*);
+
   int visit(BinaryExp* e);
   int visit(UnaryExp* e);
   int visit(NumberExp* e);
@@ -41,6 +43,9 @@ private:
   int current_label;
   Environment<int> direcciones;
   int siguiente_direccion, mem_locals;
+  string currentLoopStartLabel;
+  string currentLoopEndLabel;
+
   void codegen(string label, string instr);
   void codegen(string label, string instr, int arg);
   void codegen(string label, string instr, string jmplabel);
@@ -49,4 +54,3 @@ private:
 
 
 #endif
-

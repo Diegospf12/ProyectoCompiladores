@@ -20,7 +20,6 @@ public:
   Instruction(string l, IType itype);
   Instruction(string l, IType itype, int arg);
   Instruction(string l, IType itype, string arg);  
-  //static InstrType convertKeywordType(Token::KeywordType ktype);
 };
 
 

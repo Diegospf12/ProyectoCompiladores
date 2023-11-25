@@ -1,6 +1,5 @@
 #include <sstream>
 #include <iostream>
-#include <iostream>
 
 #include "imp.hh"
 #include "imp_parser.hh"
@@ -10,7 +9,6 @@
 #include "imp_codegen.hh"
 
 int main(int argc, const char* argv[]) {
-
   Program *program; 
    
   if (argc != 2) {

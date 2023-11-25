@@ -12,10 +12,16 @@ using namespace std;
 class ImpTypeChecker : public TypeVisitor {
 public:
   ImpTypeChecker();
+
+  bool isInsideLoop() { return loopCounter > 0; }
+  void enterLoop() { loopCounter++; }
+  void exitLoop() { if(loopCounter > 0) loopCounter--; }
+
 private:
   Environment<ImpType> env;
   ImpType booltype;
   ImpType inttype;
+  int loopCounter;
 
 public:
   void typecheck(Program*);
@@ -30,6 +36,8 @@ public:
   void visit(WhileStatement*);
   void visit(DoWhileStatement*);
   void visit(ForStatement*);
+  void visit(ContinueStatement*);
+  void visit(BreakStatement*);
   
   ImpType visit(BinaryExp* e);
   ImpType visit(UnaryExp* e);

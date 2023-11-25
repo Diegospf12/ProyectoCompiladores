@@ -1,0 +1,11 @@
+var int y;
+
+y = 1;
+while 0 < y do
+  var int z;
+  break;
+  z = 4;
+  y = 0
+endwhile;
+
+print(y)

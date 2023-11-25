@@ -18,6 +18,8 @@ public:
   int visit(WhileStatement*);
   int visit(DoWhileStatement*);
   int visit(ForStatement*);
+  int visit(ContinueStatement*);
+  int visit(BreakStatement*);
   
   int visit(BinaryExp* e);
   int visit(UnaryExp* e);

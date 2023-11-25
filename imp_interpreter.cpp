@@ -99,6 +99,14 @@ int ImpInterpreter::visit(ForStatement* s) {
  return 0;
 }
 
+int ImpInterpreter::visit(ContinueStatement* s) {
+    return 0;
+}
+
+int ImpInterpreter::visit(BreakStatement* s) {
+    return 0;
+}
+
 int ImpInterpreter::visit(BinaryExp* e) {
   int v1 = e->left->accept(this);
   int v2 = e->right->accept(this);
@@ -143,14 +151,6 @@ int ImpInterpreter::visit(IdExp* e) {
     exit(0);
   }
   return 0;
-  /*
-  if (memoria_check(e->id))
-    return memoria_lookup(e->id);
-  else {
-    cout << "Variable indefinida: " << e->id << endl;
-    exit(0);
-  }
-  */
 }
 
 int ImpInterpreter::visit(ParenthExp* ep) {

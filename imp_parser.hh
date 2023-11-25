@@ -69,10 +69,6 @@ private:
 public:
   Parser(Scanner* scanner);
   Program* parse();
-
 };
-
-
-
 
 #endif

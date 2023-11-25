@@ -62,7 +62,7 @@ int ImpCodeGen::visit(VarDecList* s) {
   }  
   return 0;
 }
-			  
+
 int ImpCodeGen::visit(VarDec* vd) {
   list<string>::iterator it;
   for (it = vd->vars.begin(); it != vd->vars.end(); ++it){
@@ -109,52 +109,88 @@ int ImpCodeGen::visit(IfStatement* s) {
 }
 
 int ImpCodeGen::visit(WhileStatement* s) {
-  string l1 = next_label();
-  string l2 = next_label();
+  string previousLoopStartLabel = currentLoopStartLabel;
+  string previousLoopEndLabel = currentLoopEndLabel;
 
-  codegen(l1,"skip");
+  currentLoopStartLabel = next_label();
+  currentLoopEndLabel = next_label();
+
+  codegen(currentLoopStartLabel, "skip");
   s->cond->accept(this);
-  codegen(nolabel,"jmpz",l2);
+  codegen(nolabel, "jmpz", currentLoopEndLabel);
   s->body->accept(this);
-  codegen(nolabel,"goto",l1);
-  codegen(l2,"skip");
+  codegen(nolabel, "goto", currentLoopStartLabel);
+  codegen(currentLoopEndLabel, "skip");
+
+  currentLoopStartLabel = previousLoopStartLabel;
+  currentLoopEndLabel = previousLoopEndLabel;
 
   return 0;
 }
 
 int ImpCodeGen::visit(DoWhileStatement* s) {
-  string l1 = next_label();
-  string l2 = next_label();
+  string previousLoopStartLabel = currentLoopStartLabel;
+  string previousLoopEndLabel = currentLoopEndLabel;
 
-  codegen(l1, "skip");
+  currentLoopStartLabel = next_label();
+  currentLoopEndLabel = next_label();
+
+  codegen(currentLoopStartLabel, "skip");
   s->body->accept(this);
   s->cond->accept(this);
-  codegen(nolabel, "jmpz", l2);
-  codegen(nolabel, "goto", l1);
-  codegen(l2, "skip");
+  codegen(nolabel, "jmpz", currentLoopEndLabel);
+  codegen(nolabel, "goto", currentLoopStartLabel);
+  codegen(currentLoopEndLabel, "skip");
+
+  currentLoopStartLabel = previousLoopStartLabel;
+  currentLoopEndLabel = previousLoopEndLabel;
 
   return 0;
 }
 
 int ImpCodeGen::visit(ForStatement* s) {
-  string l1 = next_label();
-  string l2 = next_label();
+    string previousLoopStartLabel = currentLoopStartLabel;
+    string previousLoopEndLabel = currentLoopEndLabel;
 
-  s->e1->accept(this);
-  codegen(nolabel, "store", direcciones.lookup(s->id));
-  codegen(l1, "skip");
-  codegen(nolabel, "load", direcciones.lookup(s->id));
-  s->e2->accept(this);
-  codegen(nolabel, "le");
-  codegen(nolabel, "jmpz", l2);
-  s->body->accept(this);
-  codegen(nolabel, "load", direcciones.lookup(s->id));
-  codegen(nolabel, "push", "1");
-  codegen(nolabel, "add");
-  codegen(nolabel, "store", direcciones.lookup(s->id));
-  codegen(nolabel, "goto", l1);
-  codegen(l2, "skip");
+    string forStartLabel = next_label();
+    string incrementLabel = next_label();
+    currentLoopStartLabel = incrementLabel;
+    currentLoopEndLabel = next_label();
 
+    s->e1->accept(this);
+    codegen(nolabel, "store", direcciones.lookup(s->id));
+
+    codegen(forStartLabel, "skip");
+    codegen(nolabel, "load", direcciones.lookup(s->id));
+    s->e2->accept(this);
+    codegen(nolabel, "le");
+    codegen(nolabel, "jmpz", currentLoopEndLabel);
+
+    s->body->accept(this);
+
+    codegen(incrementLabel, "skip");
+    codegen(nolabel, "load", direcciones.lookup(s->id));
+    codegen(nolabel, "push", 1);
+    codegen(nolabel, "add");
+    codegen(nolabel, "store", direcciones.lookup(s->id));
+
+    codegen(nolabel, "goto", forStartLabel);
+
+    codegen(currentLoopEndLabel, "skip");
+
+    currentLoopStartLabel = previousLoopStartLabel;
+    currentLoopEndLabel = previousLoopEndLabel;
+
+    return 0;
+}
+
+int ImpCodeGen::visit(ContinueStatement* s) {
+  codegen(nolabel, "goto", currentLoopStartLabel);
+  return 0;
+}
+
+int ImpCodeGen::visit(BreakStatement* s) {
+  codegen(nolabel, "goto", currentLoopEndLabel);
   return 0;
 }
 

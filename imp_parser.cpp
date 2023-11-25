@@ -1,5 +1,3 @@
-
-
 #include "imp_parser.hh"
 
 
@@ -334,6 +332,12 @@ Stm* Parser::parseStatement() {
     if (!match(Token::ENDFOR)) parserError("Esperaba ENDFOR en for");
     s = new ForStatement(var,e,e2,tb);
   }
+  else if (match(Token::CONTINUE)) {
+    s = new ContinueStatement();
+  }
+  else if (match(Token::BREAK)) { 
+    s = new BreakStatement();
+  }
   else {
     cout << "No se encontro Statement" << endl;
     exit(0);
@@ -416,7 +420,6 @@ Exp* Parser::parseUnary() {
   return e;
 }
 
-
 Exp* Parser::parseFactor() {
   if (match(Token::NUM)) {
     return new NumberExp(stoi(previous->lexema));
@@ -449,16 +452,3 @@ Exp* Parser::parseFactor() {
   cout << "Couldn't find match for token: " << current << endl;
   exit(0);
 }
-
-
-
-
-
-
-
-
-
-// ---------------------------------------------------
-
-
-
