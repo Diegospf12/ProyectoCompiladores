@@ -62,7 +62,7 @@ Token* Scanner::nextToken() {
 }
 ```
 
-## **2) Generacuón de código para AND/OR y For loops**
+## **2) Generación de código para AND/OR y For loops**
 
 ### AND/OR
 
@@ -288,7 +288,7 @@ Se declaró el método **visit** en los archivos **type_visitor.hh** y **imp_typ
 class TypeVisitor {
 public:
   virtual void visit(Program* p) = 0;
-  virtual void visit(Body* b) = 0;  // nuevo
+  virtual void visit(Body* b) = 0;
   virtual void visit(VarDecList* e) = 0;
   virtual void visit(VarDec* e) = 0;
   virtual void visit(StatementList* e) = 0;
