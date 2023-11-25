@@ -274,8 +274,14 @@ int ImpPrinter::visit(DoWhileStatement* s) {
 
 
 ### Typecheker
+Para el typechecking se uso la siguiente definición:
 
-Para el typechecking se declaró el método **visit** en los archivos **type_visitor.hh** y **imp_typechecker.hh**:
+```bnf
+tcheck(env, DoWhileStatement(cond,body))  ifi
+        tcheck(env, body) && tcheck(env, cond) = bool
+```
+
+Se declaró el método **visit** en los archivos **type_visitor.hh** y **imp_typechecker.hh**:
 
 **type_visitor.hh**
 ```cpp
@@ -351,8 +357,19 @@ void ImpTypeChecker::visit(DoWhileStatement* s) {
 ```
 
 ### Codegen
+Para la generación de código se uso la definición:
 
-Para la generación de codigo también se añadio un nuevo método **visit** en los archivos **imp_visitor.hh** y **imp_codegen.hh**:
+```bnf
+codegen(addr, DoWhileStatement(cond, body)) =
+        LENTRY: skip
+        codegen(addr, body)
+        codegen(addr, cond)
+        jmpz LEND
+        goto LENTRY
+        LEND: skip
+```
+
+Se añadio un nuevo método **visit** en los archivos **imp_visitor.hh** y **imp_codegen.hh**:
 
 **imp_visitor.hh**
 ```cpp
