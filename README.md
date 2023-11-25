@@ -8,7 +8,7 @@
 
 ## **Introducción**
 
-Este proyecto se enfoc en implementar un compilador con las etapas de Análisis Sintáctico, Semántico, Intérprete y Generación de código para el lenguaje definido por la siguiente gramática:
+Este proyecto se enfoc en implementar un compilador con las etapas de Análisis Sintáctico, Semántico, Intérprete y Generación de código para el lenguaje **IMP0** definido por la siguiente sintáxis:
 
 ```bnf
 Program ::= Body
@@ -35,3 +35,29 @@ Factor ::= num |  ́( ́ Exp  ́) ́ | id
 ```
 
 ## **Comentarios**
+
+Agregaremos comentarios de una sola línea en cualquier punto del programa. Los comentarios deberán empezar con **//** y acabar con el fin de línea **"\n"**.
+
+Para esto se modificó el **Scanner**, más especificamente el método __Token* Scanner::nextToken()__ en el archivo **imp_parser.cpp**, la modificación fue la siguiente:
+
+```cpp
+Token* Scanner::nextToken() {
+ ...............
+  } else if (strchr("()+-*/;=<,!:", c)) {
+    switch(c) {
+  ..............   
+    case '/':
+      c = nextChar();
+      if (c == '/') {
+        while (c != '\n' && c != '\0') c = nextChar();
+        if (c == '\0') return new Token(Token::END);
+        return nextToken();
+      } else {
+        rollBack(); 
+        token = new Token(Token::DIV); 
+      }
+      break; 
+   .......
+  return token;
+}
+```
