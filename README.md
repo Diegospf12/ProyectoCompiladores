@@ -135,7 +135,135 @@ Para incluir la sentencia **Do-While** en nuestro lenguaje **IMP0** se tuvo que 
 Stm ::= ... | "do" Body "while" Exp "enddo"?
 ```
 
+Ahora para poder hacer su análisis sintáctico se tuvo que modificar el método __Stm* Parser::parseStatement()__ en el archivo **imp_parser.cpp**, la modificación fue la siguiente:
 
+```cpp
+Stm* Parser::parseStatement() {
+  Stm* s = NULL;
+  Exp* e;
+  Body *tb, *fb;
+  .......
+  } else if (match(Token::DO)) {
+    tb = parseBody();
+    if (!match(Token::WHILE)) {
+      cout << "Error: esperaba while" << endl;
+      exit(0);
+    }
+    e = parseExp();
+    if (!match(Token::ENDDO)) s = new DoWhileStatement(e,tb);    // "enddo"?
+    else s = new DoWhileStatement(e,tb);
+  }
+  .......
+  else {
+    cout << "No se encontro Statement" << endl;
+    exit(0);
+  }
+  return s;
+}
+```
 
+Luego, se definio la clase DoWhileStatement en el archivo **imp.hh** para poder recorrerlo en el AST:
 
+```cpp
+class DoWhileStatement : public Stm {
+public:
+  Exp* cond;
+  Body *body;
+  DoWhileStatement(Exp* c, Body* b);
+  int accept(ImpVisitor* v);
+  void accept(TypeVisitor* v);
+  ~DoWhileStatement();
+};
+```
 
+Finalmente, se implementó el constructor y destructor de la clase y los métodos **accept** en el archivo **imp.cpp**:
+
+```cpp
+// Constructor
+DoWhileStatement::DoWhileStatement(Exp* c,Body *b):cond(c),body(b) { }
+
+// Destructor
+DoWhileStatement::~DoWhileStatement() { delete body; delete cond; }
+
+// accepts
+int DoWhileStatement::accept(ImpVisitor* v) {
+  return v->visit(this);
+}
+
+void DoWhileStatement::accept(TypeVisitor* v) {
+  return v->visit(this);
+}
+```
+
+El siguiente paso fue implementar el interprete de la sentencia, para eso se definió el método **visit** en el archivo **imp_interpreter.hh**:
+
+```cpp
+class ImpInterpreter : public ImpVisitor {
+private:
+  Environment<int> env;
+
+public:
+  int interpret(Program*);
+  int visit(Program*);
+  int visit(Body*);
+  int visit(VarDecList*);
+  int visit(VarDec*);
+  int visit(StatementList*);
+  int visit(AssignStatement*);
+  int visit(PrintStatement*);
+  int visit(IfStatement*);
+  int visit(WhileStatement*);
+  int visit(DoWhileStatement*);   // new
+```
+
+Finalmente, se implementó el método en el archivo **imp_interpreter.cpp**
+
+```cpp
+int ImpInterpreter::visit(DoWhileStatement* s) {
+  do {
+    s->body->accept(this);
+  } while (s->cond->accept(this));
+  return 0;
+}
+```
+
+Para el printer de forma similar al interprete, se añadio un nuevo método en el archivo **imp.printer.hh**:
+
+```cpp
+class ImpPrinter : public ImpVisitor {
+public:
+  void print(Program*);
+  int visit(Program*);
+  int visit(Body*);
+  int visit(VarDecList*);
+  int visit(VarDec*);
+  int visit(StatementList*);
+  int visit(AssignStatement*);
+  int visit(PrintStatement*);
+  int visit(IfStatement*);
+  int visit(WhileStatement*);
+  int visit(DoWhileStatement*);   //new
+  int visit(ForStatement*);
+  
+  int visit(BinaryExp* e);
+  int visit(UnaryExp* e);
+  int visit(NumberExp* e);
+  int visit(BoolConstExp* e);
+  int visit(IdExp* e);
+  int visit(ParenthExp* e);
+  int visit(CondExp* e);
+};
+```
+
+Y luego se implementó el método en el archivo **imp_printer.cpp**:
+
+```cpp
+int ImpPrinter::visit(DoWhileStatement* s) {
+  cout << "do" << endl;
+  s->body->accept(this);
+  cout << "while (";
+  s->cond->accept(this);
+  cout << ")";
+  return 0;
+}
+```
