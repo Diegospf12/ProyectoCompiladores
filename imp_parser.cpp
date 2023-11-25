@@ -86,8 +86,8 @@ Token* Scanner::nextToken() {
       c = nextChar();
       if (c == '/') {
         while (c != '\n' && c != '\0') c = nextChar();
-        if (c == '\0') return new Token(Token::END);
-        return nextToken();
+        if (c == '\0') token = new Token(Token::END);
+        token = nextToken();
       } else {
         rollBack(); 
         token = new Token(Token::DIV); 
@@ -297,7 +297,8 @@ Stm* Parser::parseStatement() {
       exit(0);
     }
     e = parseExp();
-    s = new DoWhileStatement(e,tb);
+    if (!match(Token::ENDDO)) s = new DoWhileStatement(e,tb);
+    else s = new DoWhileStatement(e,tb);
   } else if (match(Token::IF)) {
       e = parseExp();
       if (!match(Token::THEN))
