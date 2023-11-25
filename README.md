@@ -376,7 +376,7 @@ Se añadio un nuevo método **visit** en los archivos **imp_visitor.hh** y **imp
 class ImpVisitor {
 public:
   virtual int visit(Program* p) = 0;
-  virtual int visit(Body* b) = 0;  // nuevo
+  virtual int visit(Body* b) = 0;
   virtual int visit(VarDecList* e) = 0;
   virtual int visit(VarDec* e) = 0;
   virtual int visit(StatementList* e) = 0;
