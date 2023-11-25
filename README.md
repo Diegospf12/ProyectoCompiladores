@@ -456,4 +456,12 @@ int ImpCodeGen::visit(DoWhileStatement* s) {
 
 Con todos estos cambios, la nueva sentencia Do-While es recocida por nuestro Compilador.
 
+## **4) Sentencias break y continue**
+
+Para incluir las sentencias **break** y **continue** en nuestro lenguaje **IMP0** se tuvo que hacer cambios en la sintáxis actual, se añadieron dos nuevas producciones a **Stm** las cuales son:
+
+```bnf
+Stm ::= ... | "break" | "continue"
+```
+
 
