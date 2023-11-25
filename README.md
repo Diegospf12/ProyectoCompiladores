@@ -6,7 +6,7 @@
 | :----------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------: |
 | <img src="https://avatars.githubusercontent.com/u/83974555?v=4" alt="drawing" width="200"/> | <img src="https://avatars.githubusercontent.com/u/94090499?v=4" alt="drawing" width="200"/> | <img src="https://avatars.githubusercontent.com/u/83975293?v=4" alt="drawing" width="200"/> |
 
-## Introducción
+## **Introducción**
 
 Este proyecto se enfoc en implementar un compilador con las etapas de Análisis Sintáctico, Semántico, Intérprete y Generación de código para el lenguaje definido por la siguiente gramática:
 
@@ -31,5 +31,7 @@ Term ::= Factor (( ́* ́| ́/ ́) Factor)*
 FExp ::= Unary (“**” FExp”)?
 Unary ::= (‘!’|’-‘)? Factor
 Factor ::= num |  ́( ́ Exp  ́) ́ | id
-“ifexp”  ́( ́ Exp  ́, ́ Exp  ́, ́ Exp  ́) ́
+           “ifexp”  ́( ́ Exp  ́, ́ Exp  ́, ́ Exp  ́) ́
 ```
+
+## **Comentarios**
