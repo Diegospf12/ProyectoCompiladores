@@ -64,6 +64,8 @@ Token* Scanner::nextToken() {
 
 ## **2) Generacuón de código para AND/OR y For loops**
 
+### AND/OR
+
 Para la generación de código de constantes booleanas **(AND/OR)** se modificó el método __int ImpCodeGen::visit(BoolConstExp* e)__ en el archivo **imp_codegen.cpp**, la modificación fue la siguiente:
 
 ```cpp
@@ -96,3 +98,44 @@ int ImpCodeGen::visit(BinaryExp* e) {
   return 0;
 }
 ```
+
+### FOR Loops
+
+Para la generación de código de For Loops se modificó el método __int ImpCodeGen::visit(ForStatement* s)__ en el archivo **imo_codegen.coo**, la modificación fue la siguiente:
+
+```cpp
+int ImpCodeGen::visit(ForStatement* s) {
+  string l1 = next_label();
+  string l2 = next_label();
+
+  s->e1->accept(this);
+  codegen(nolabel, "store", direcciones.lookup(s->id));
+  codegen(l1, "skip");
+  codegen(nolabel, "load", direcciones.lookup(s->id));
+  s->e2->accept(this);
+  codegen(nolabel, "le");
+  codegen(nolabel, "jmpz", l2);
+  s->body->accept(this);
+  codegen(nolabel, "load", direcciones.lookup(s->id));
+  codegen(nolabel, "push", "1");
+  codegen(nolabel, "add");
+  codegen(nolabel, "store", direcciones.lookup(s->id));
+  codegen(nolabel, "goto", l1);
+  codegen(l2, "skip");
+
+  return 0;
+}
+```
+
+## **Sentencia Do-While**
+
+Para incluir la sentencia **Do-While** en nuestro lenguaje **IMP0** se tuvo que hacer cambios en la sintáxis actual, se añadio una nueva producción a **Stm** la cual es:
+
+```bnf
+Stm ::= ... | "do" Body "while" Exp "enddo"?
+```
+
+
+
+
+
