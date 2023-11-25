@@ -8,7 +8,7 @@
 
 ## **Introducción**
 
-Este proyecto se enfoc en implementar un compilador con las etapas de Análisis Sintáctico, Semántico, Intérprete y Generación de código para el lenguaje **IMP0** definido por la siguiente sintáxis:
+Este proyecto se enfocó en implementar un compilador con las etapas de Análisis Sintáctico, Semántico, Intérprete y Generación de código para el lenguaje **IMP0** definido por la siguiente sintáxis:
 
 ```bnf
 Program ::= Body
