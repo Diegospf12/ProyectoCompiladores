@@ -135,6 +135,7 @@ Para incluir la sentencia **Do-While** en nuestro lenguaje **IMP0** se tuvo que 
 Stm ::= ... | "do" Body "while" Exp "enddo"?
 ```
 
+### Parser
 Ahora para poder hacer su análisis sintáctico se tuvo que modificar el método __Stm* Parser::parseStatement()__ en el archivo **imp_parser.cpp**, la modificación fue la siguiente:
 
 ```cpp
@@ -162,7 +163,8 @@ Stm* Parser::parseStatement() {
 }
 ```
 
-Luego, se definio la clase DoWhileStatement en el archivo **imp.hh** para poder recorrerlo en el AST:
+### AST
+Se definio la clase DoWhileStatement en el archivo **imp.hh** para poder recorrerlo en el AST:
 
 ```cpp
 class DoWhileStatement : public Stm {
@@ -195,6 +197,7 @@ void DoWhileStatement::accept(TypeVisitor* v) {
 }
 ```
 
+### Interpreter
 El siguiente paso fue implementar el interprete de la sentencia, para eso se definió el método **visit** en el archivo **imp_interpreter.hh**:
 
 ```cpp
@@ -227,6 +230,7 @@ int ImpInterpreter::visit(DoWhileStatement* s) {
 }
 ```
 
+### Printer
 Para el printer de forma similar al interprete, se añadio un nuevo método en el archivo **imp.printer.hh**:
 
 ```cpp
@@ -267,3 +271,171 @@ int ImpPrinter::visit(DoWhileStatement* s) {
   return 0;
 }
 ```
+
+
+### Typecheker
+
+Para el typechecking se declaró el método **visit** en los archivos **type_visitor.hh** y **imp_typechecker.hh**:
+
+**type_visitor.hh**
+```cpp
+class TypeVisitor {
+public:
+  virtual void visit(Program* p) = 0;
+  virtual void visit(Body* b) = 0;  // nuevo
+  virtual void visit(VarDecList* e) = 0;
+  virtual void visit(VarDec* e) = 0;
+  virtual void visit(StatementList* e) = 0;
+  virtual void visit(AssignStatement* e) = 0;
+  virtual void visit(PrintStatement* e) = 0;
+  virtual void visit(IfStatement* e) = 0;
+  virtual void visit(WhileStatement* e) = 0;
+  virtual void visit(DoWhileStatement* e) = 0;    // new
+  virtual void visit(ForStatement* e) = 0;
+  
+  virtual ImpType visit(BinaryExp* e) = 0;
+  virtual ImpType visit(UnaryExp* e) = 0;
+  virtual ImpType visit(NumberExp* e) = 0;
+  virtual ImpType visit(BoolConstExp* e) = 0;
+  virtual ImpType visit(IdExp* e) = 0;
+  virtual ImpType visit(ParenthExp* e) = 0;
+  virtual ImpType visit(CondExp* e) = 0;
+};
+```
+
+**imp_typechecker.hh**
+```cpp
+class ImpTypeChecker : public TypeVisitor {
+public:
+  ImpTypeChecker();
+private:
+  Environment<ImpType> env;
+  ImpType booltype;
+  ImpType inttype;
+
+public:
+  void typecheck(Program*);
+  void visit(Program*);
+  void visit(Body*);
+  void visit(VarDecList*);
+  void visit(VarDec*);
+  void visit(StatementList*);
+  void visit(AssignStatement*);
+  void visit(PrintStatement*);
+  void visit(IfStatement*);
+  void visit(WhileStatement*);
+  void visit(DoWhileStatement*);   // new
+  void visit(ForStatement*);
+  
+  ImpType visit(BinaryExp* e);
+  ImpType visit(UnaryExp* e);
+  ImpType visit(NumberExp* e);
+  ImpType visit(BoolConstExp* e);
+  ImpType visit(IdExp* e);
+  ImpType visit(ParenthExp* e);
+  ImpType visit(CondExp* e);
+};
+```
+
+Y finalmente se implementó el método en el archivo **imp_typechecker.cpp**:
+
+```cpp
+void ImpTypeChecker::visit(DoWhileStatement* s) {
+  if (!s->cond->accept(this).match(booltype)) {
+    cout << "Condicional en DoWhileStm debe de ser: " << booltype << endl;
+    exit(0);
+  }  
+  s->body->accept(this);
+ return;
+}
+```
+
+### Codegen
+
+Para la generación de codigo también se añadio un nuevo método **visit** en los archivos **imp_visitor.hh** y **imp_codegen.hh**:
+
+**imp_visitor.hh**
+```cpp
+class ImpVisitor {
+public:
+  virtual int visit(Program* p) = 0;
+  virtual int visit(Body* b) = 0;  // nuevo
+  virtual int visit(VarDecList* e) = 0;
+  virtual int visit(VarDec* e) = 0;
+  virtual int visit(StatementList* e) = 0;
+  virtual int visit(AssignStatement* e) = 0;
+  virtual int visit(PrintStatement* e) = 0;
+  virtual int visit(IfStatement* e) = 0;
+  virtual int visit(WhileStatement* e) = 0;
+  virtual int visit(DoWhileStatement* e) = 0;    // new
+  virtual int visit(ForStatement* e) = 0;
+  
+  virtual int visit(BinaryExp* e) = 0;
+  virtual int visit(UnaryExp* e) = 0;
+  virtual int visit(NumberExp* e) = 0;
+  virtual int visit(BoolConstExp* e) = 0;
+  virtual int visit(IdExp* e) = 0;
+  virtual int visit(ParenthExp* e) = 0;
+  virtual int visit(CondExp* e) = 0;
+};
+```
+
+**imp_codegen.hh**
+```cpp
+class ImpCodeGen : public ImpVisitor {
+public:
+  void codegen(Program*, string outfname);
+  int visit(Program*);
+  int visit(Body*);
+  int visit(VarDecList*);
+  int visit(VarDec*);
+  int visit(StatementList*);
+  int visit(AssignStatement*);
+  int visit(PrintStatement*);
+  int visit(IfStatement*);
+  int visit(WhileStatement*);
+  int visit(DoWhileStatement*);    // new
+  int visit(ForStatement*);
+  
+  int visit(BinaryExp* e);
+  int visit(UnaryExp* e);
+  int visit(NumberExp* e);
+  int visit(BoolConstExp* e);
+  int visit(IdExp* e);
+  int visit(ParenthExp* e);
+  int visit(CondExp* e);
+
+private:
+  std::ostringstream code;
+  string nolabel;
+  int current_label;
+  Environment<int> direcciones;
+  int siguiente_direccion, mem_locals;
+  void codegen(string label, string instr);
+  void codegen(string label, string instr, int arg);
+  void codegen(string label, string instr, string jmplabel);
+  string next_label();
+};
+```
+
+Y finalmente, se implementó el método en el archivo **imp_codegen.cpp**:
+
+```cpp
+int ImpCodeGen::visit(DoWhileStatement* s) {
+  string l1 = next_label();
+  string l2 = next_label();
+
+  codegen(l1, "skip");
+  s->body->accept(this);
+  s->cond->accept(this);
+  codegen(nolabel, "jmpz", l2);
+  codegen(nolabel, "goto", l1);
+  codegen(l2, "skip");
+
+  return 0;
+}
+```
+
+Con todos estos cambios, la nueva sentencia Do-While es recocida por nuestro Compilador.
+
+
