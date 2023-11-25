@@ -217,6 +217,7 @@ public:
   int visit(IfStatement*);
   int visit(WhileStatement*);
   int visit(DoWhileStatement*);   // new
+  int visit(ForStatement*);
 ```
 
 Finalmente, se implementó el método en el archivo **imp_interpreter.cpp**
