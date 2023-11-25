@@ -127,7 +127,7 @@ int ImpCodeGen::visit(ForStatement* s) {
 }
 ```
 
-## **Sentencia Do-While**
+## **3) Sentencia Do-While**
 
 Para incluir la sentencia **Do-While** en nuestro lenguaje **IMP0** se tuvo que hacer cambios en la sintáxis actual, se añadio una nueva producción a **Stm** la cual es:
 
