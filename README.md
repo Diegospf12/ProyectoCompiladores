@@ -50,8 +50,8 @@ Token* Scanner::nextToken() {
       c = nextChar();
       if (c == '/') {
         while (c != '\n' && c != '\0') c = nextChar();
-        if (c == '\0') return new Token(Token::END);
-        return nextToken();
+        if (c == '\0') token = new Token(Token::END);
+        token = nextToken();
       } else {
         rollBack(); 
         token = new Token(Token::DIV); 
