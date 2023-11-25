@@ -34,7 +34,7 @@ Factor ::= num |  ́( ́ Exp  ́) ́ | id
            “ifexp”  ́( ́ Exp  ́, ́ Exp  ́, ́ Exp  ́) ́
 ```
 
-## **Comentarios**
+## **1) Comentarios**
 
 Agregaremos comentarios de una sola línea en cualquier punto del programa. Los comentarios deberán empezar con **//** y acabar con el fin de línea **"\n"**.
 
@@ -59,5 +59,40 @@ Token* Scanner::nextToken() {
       break; 
    .......
   return token;
+}
+```
+
+## **2) Generacuón de código para AND/OR y For loops**
+
+Para la generación de código de constantes booleanas **(AND/OR)** se modificó el método __int ImpCodeGen::visit(BoolConstExp* e)__ en el archivo **imp_codegen.cpp**, la modificación fue la siguiente:
+
+```cpp
+int ImpCodeGen::visit(BoolConstExp* e) {
+  codegen(nolabel,"push",e->b ? 1 : 0);
+  return 0;
+}
+```
+
+Además, se añadieron dos cases en el switch del método __int ImpCodeGen::visit(BinaryExp* e)__ en el archivo **imp_codegen.cpp**, la modificación fue la siguiente:
+
+```cpp
+int ImpCodeGen::visit(BinaryExp* e) {
+  e->left->accept(this);
+  e->right->accept(this);
+  string op = "";
+  switch(e->op) {
+  case PLUS: op =  "add"; break;
+  case MINUS: op = "sub"; break;
+  case MULT:  op = "mul"; break;
+  case DIV:  op = "div"; break;
+  case LT:  op = "lt"; break;
+  case LTEQ: op = "le"; break;
+  case EQ:  op = "eq"; break;
+  case AND: op = "and"; break;    // Para el codegen de AND
+  case OR:  op = "or"; break;     // Para el codegen de OR
+  default: cout << "binop " << Exp::binopToString(e->op) << " not implemented" << endl;
+  }
+  codegen(nolabel, op);
+  return 0;
 }
 ```
