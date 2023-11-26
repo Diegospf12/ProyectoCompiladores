@@ -101,7 +101,27 @@ int ImpCodeGen::visit(BinaryExp* e) {
 
 ### FOR Loops
 
-Para la generación de código de For Loops se modificó el método __int ImpCodeGen::visit(ForStatement* s)__ en el archivo **imo_codegen.coo**, la modificación fue la siguiente:
+Para la generación de código de For Loops se uso la siguiente definicion:
+
+```bnf
+codegen(addr, ForStatement(id, e1, e2, body)) =
+        codegen(addr, e1)
+        store id
+        LENTRY: skip
+        load addr(id)
+        codegen(addr, e2)
+        le
+        jmpz LEND
+        codegen(addr, body)
+        load addr(id)
+        push 1
+        add
+        store addr(id)
+        goto LENTRY
+        LEND: skip
+```
+
+Se modificó el método __int ImpCodeGen::visit(ForStatement* s)__ en el archivo **imo_codegen.coo**, la modificación fue la siguiente:
 
 ```cpp
 int ImpCodeGen::visit(ForStatement* s) {
@@ -464,4 +484,336 @@ Para incluir las sentencias **break** y **continue** en nuestro lenguaje **IMP0*
 Stm ::= ... | "break" | "continue"
 ```
 
+### Parser
 
+Se incluyeron dos nuevos tokens a la lista de Tokens
+
+```cpp
+const char* Token::token_names[38] = { ..., "BREAK", "CONTINUE" };
+```
+
+Luego se incluyeron en la lista de palabras reservadas
+
+```cpp
+Scanner::Scanner(string s):input(s),first(0),current(0) {
+  .....
+  reserved["break"] = Token::BREAK;
+  reserved["continue"] = Token::CONTINUE;
+}
+```
+
+Y finalmente, se modificó el método parseStatement
+
+```cpp
+Stm* Parser::parseStatement() {
+  Stm* s = NULL;
+  Exp* e;
+  Body *tb, *fb;
+  .......
+  else if (match(Token::CONTINUE)) {
+    s = new ContinueStatement();
+  }
+  else if (match(Token::BREAK)) { 
+    s = new BreakStatement();
+  }
+  .......
+  return s;
+}
+```
+
+### Printer
+Se incluyó el método visit
+
+**imp_printer.hh**
+```cpp
+class ImpPrinter : public ImpVisitor {
+public:
+  void print(Program*);
+  int visit(Program*);
+  int visit(Body*);
+  int visit(VarDecList*);
+  int visit(VarDec*);
+  int visit(StatementList*);
+  int visit(AssignStatement*);
+  int visit(PrintStatement*);
+  int visit(IfStatement*);
+  int visit(WhileStatement*);
+  int visit(DoWhileStatement*);
+  int visit(ForStatement*);
+  int visit(ContinueStatement*);   // new
+  int visit(BreakStatement*);      // new
+  
+  int visit(BinaryExp* e);
+  int visit(UnaryExp* e);
+  int visit(NumberExp* e);
+  int visit(BoolConstExp* e);
+  int visit(IdExp* e);
+  int visit(ParenthExp* e);
+  int visit(CondExp* e);
+};
+```
+
+**imp_printer.cpp**
+```cpp
+int ImpPrinter::visit(ContinueStatement* e) {
+  cout << "continue";
+  return 0;
+}
+
+int ImpPrinter::visit(BreakStatement* e) {
+  cout << "break";
+  return 0;
+}
+```
+
+### Typechecking
+Para el typechecking se uso la siguiente definición
+
+**continue**
+```bnf
+tcheck(env, ContinueStatement()) = bool
+```
+
+**break**
+```bnf
+tcheck(env, BreakStatement(cond,body)) = bool
+```
+
+Se incluyeron nuevos atributos en el la clase de **ImpTypeChecker** y dos nuevos métodos **visit**
+
+**imp_typechecker.hh**
+```cpp
+class ImpTypeChecker : public TypeVisitor {
+public:
+  ImpTypeChecker();
+
+  bool isInsideLoop() { return loopCounter > 0; }          // new
+  void enterLoop() { loopCounter++; }                      // new
+  void exitLoop() { if(loopCounter > 0) loopCounter--; }   // new
+
+private:
+  Environment<ImpType> env;
+  ImpType booltype;
+  ImpType inttype;
+  int loopCounter;
+
+public:
+  void typecheck(Program*);
+  void visit(Program*);
+  void visit(Body*);
+  void visit(VarDecList*);
+  void visit(VarDec*);
+  void visit(StatementList*);
+  void visit(AssignStatement*);
+  void visit(PrintStatement*);
+  void visit(IfStatement*);
+  void visit(WhileStatement*);
+  void visit(DoWhileStatement*);
+  void visit(ForStatement*);
+  void visit(ContinueStatement*);                          // new
+  void visit(BreakStatement*);                             // new
+  
+  ImpType visit(BinaryExp* e);
+  ImpType visit(UnaryExp* e);
+  ImpType visit(NumberExp* e);
+  ImpType visit(BoolConstExp* e);
+  ImpType visit(IdExp* e);
+  ImpType visit(ParenthExp* e);
+  ImpType visit(CondExp* e);
+};
+```
+
+**imp_typechecker.cpp**
+```cpp
+void ImpTypeChecker::visit(ContinueStatement* s) {
+  if (!isInsideLoop()) {
+    cout << "La sentencia 'continue' solo puede usarse dentro de un bucle." << endl;
+    exit(0);
+  }
+}
+
+void ImpTypeChecker::visit(BreakStatement* s) {
+  if (!isInsideLoop()) {
+    cout << "La sentencia 'break' solo puede usarse dentro de un bucle." << endl;
+    exit(0);
+  }
+}
+```
+
+### AST
+Se añadieron las dos nuevas clases a Stm
+
+**imp.hh**
+```cpp
+class ContinueStatement: public Stm {
+public:
+  ContinueStatement();
+  int accept(ImpVisitor* v);
+  void accept(TypeVisitor* v);
+  ~ContinueStatement();
+};
+
+class BreakStatement: public Stm {
+public:
+  BreakStatement();
+  int accept(ImpVisitor* v);
+  void accept(TypeVisitor* v);
+  ~BreakStatement();
+};
+```
+
+**imp.cpp**
+```cpp
+ContinueStatement::ContinueStatement() = default;
+BreakStatement::BreakStatement() = default;
+
+ContinueStatement::~ContinueStatement() {}
+BreakStatement::~BreakStatement() {}
+
+void ContinueStatement::accept(TypeVisitor* v) {
+  return v->visit(this);
+}
+
+void BreakStatement::accept(TypeVisitor* v) {
+  return v->visit(this);
+}
+```
+
+### Codegen
+Para la generación de código se uso la definición:
+
+**DoWhile**
+```bnf
+codegen(addr, ContinueStatement(cond, body)) =
+        goto LENTRY
+```
+
+**While**
+```bnf
+codegen(addr, BreakStatement(cond, body)) =
+        goto LEND
+```
+
+Se añadio nuevos labels en **imp_codegen.hh** además de los métodos **visit** para break y continue:
+
+```cpp
+class ImpCodeGen : public ImpVisitor {
+public:
+  void codegen(Program*, string outfname);
+  int visit(Program*);
+  int visit(Body*);
+  int visit(VarDecList*);
+  int visit(VarDec*);
+  int visit(StatementList*);
+  int visit(AssignStatement*);
+  int visit(PrintStatement*);
+  int visit(IfStatement*);
+  int visit(WhileStatement*);
+  int visit(DoWhileStatement*);
+  int visit(ForStatement*);
+  int visit(ContinueStatement*);     // new
+  int visit(BreakStatement*);        // new
+
+  int visit(BinaryExp* e);
+  int visit(UnaryExp* e);
+  int visit(NumberExp* e);
+  int visit(BoolConstExp* e);
+  int visit(IdExp* e);
+  int visit(ParenthExp* e);
+  int visit(CondExp* e);
+
+private:
+  std::ostringstream code;
+  string nolabel;
+  int current_label;
+  Environment<int> direcciones;
+  int siguiente_direccion, mem_locals;
+  string currentLoopStartLabel;            // new
+  string currentLoopEndLabel;              // new
+
+  void codegen(string label, string instr);
+  void codegen(string label, string instr, int arg);
+  void codegen(string label, string instr, string jmplabel);
+  string next_label();
+};
+```
+
+Además, modificaron los respectivos métodos de **visit** de todos los bucles en el archivo **imp_codegen.cpp**
+
+```cpp
+int ImpCodeGen::visit(WhileStatement* s) {
+  string previousLoopStartLabel = currentLoopStartLabel;
+  string previousLoopEndLabel = currentLoopEndLabel;
+
+  currentLoopStartLabel = next_label();
+  currentLoopEndLabel = next_label();
+
+  codegen(currentLoopStartLabel, "skip");
+  s->cond->accept(this);
+  codegen(nolabel, "jmpz", currentLoopEndLabel);
+  s->body->accept(this);
+  codegen(nolabel, "goto", currentLoopStartLabel);
+  codegen(currentLoopEndLabel, "skip");
+
+  currentLoopStartLabel = previousLoopStartLabel;
+  currentLoopEndLabel = previousLoopEndLabel;
+
+  return 0;
+}
+
+int ImpCodeGen::visit(DoWhileStatement* s) {
+  string previousLoopStartLabel = currentLoopStartLabel;
+  string previousLoopEndLabel = currentLoopEndLabel;
+
+  currentLoopStartLabel = next_label();
+  currentLoopEndLabel = next_label();
+
+  codegen(currentLoopStartLabel, "skip");
+  s->body->accept(this);
+  s->cond->accept(this);
+  codegen(nolabel, "jmpz", currentLoopEndLabel);
+  codegen(nolabel, "goto", currentLoopStartLabel);
+  codegen(currentLoopEndLabel, "skip");
+
+  currentLoopStartLabel = previousLoopStartLabel;
+  currentLoopEndLabel = previousLoopEndLabel;
+
+  return 0;
+}
+
+int ImpCodeGen::visit(ForStatement* s) {
+    string previousLoopStartLabel = currentLoopStartLabel;
+    string previousLoopEndLabel = currentLoopEndLabel;
+
+    string forStartLabel = next_label();
+    string incrementLabel = next_label();
+    currentLoopStartLabel = incrementLabel;
+    currentLoopEndLabel = next_label();
+
+    s->e1->accept(this);
+    codegen(nolabel, "store", direcciones.lookup(s->id));
+
+    codegen(forStartLabel, "skip");
+    codegen(nolabel, "load", direcciones.lookup(s->id));
+    s->e2->accept(this);
+    codegen(nolabel, "le");
+    codegen(nolabel, "jmpz", currentLoopEndLabel);
+
+    s->body->accept(this);
+
+    codegen(incrementLabel, "skip");
+    codegen(nolabel, "load", direcciones.lookup(s->id));
+    codegen(nolabel, "push", 1);
+    codegen(nolabel, "add");
+    codegen(nolabel, "store", direcciones.lookup(s->id));
+
+    codegen(nolabel, "goto", forStartLabel);
+
+    codegen(currentLoopEndLabel, "skip");
+
+    currentLoopStartLabel = previousLoopStartLabel;
+    currentLoopEndLabel = previousLoopEndLabel;
+
+    return 0;
+}
+```
